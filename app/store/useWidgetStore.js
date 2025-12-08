@@ -11,6 +11,10 @@ import { createCraftingSlice } from "./slices/createCraftingSlice";
 
 // Sabitleri içe aktar (Eğer app/store/constants.js oluşturmadıysan, WIDGET_REGISTRY'yi app/data/constants.js yolundan alabilirsin)
 // Not: Eğer constants dosyan yoksa bu satırı kontrol et.
+import { createBossSlice } from "./slices/createBossSlice";
+
+// Sabitleri içe aktar (Eğer app/store/constants.js oluşturmadıysan, WIDGET_REGISTRY'yi app/data/constants.js yolundan alabilirsin)
+// Not: Eğer constants dosyan yoksa bu satırı kontrol et.
 import { WIDGET_REGISTRY } from "../store/constants";
 
 // ============================================================================
@@ -22,15 +26,19 @@ const useWidgetStore = create(
       ...createUISlice(...a),
       ...createMarketSlice(...a),
       ...createCraftingSlice(...a),
+      ...createBossSlice(...a),
     })),
     {
       name: "financial-dashboard-storage", // LocalStorage Key
-      version: 5, // ÖNEMLİ: Versiyon 5'e geçtik, serverProfiles yapısı düzeltildi.
+      version: 6, // ÖNEMLİ: Versiyon 6'ya geçtik, Boss slice eklendi.
 
       // Migration: Versiyon değişirse state'i temizle
       migrate: (persistedState, version) => {
-        if (version < 4) {
-          return persistedState; // Eski veriyi koru, yeni alanlar otomatik eklenecek
+        if (version < 6) {
+          return {
+            ...persistedState,
+            bosses: [] // Yeni boss state'ini başlat
+          };
         }
         return persistedState;
       },

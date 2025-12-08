@@ -11,6 +11,7 @@ export function useSharedWidgetData() {
     const serverProfiles = useWidgetStore((state) => state.serverProfiles);
     const itemRegistry = useWidgetStore((state) => state.masterRegistry);
     const craftingItems = useWidgetStore((state) => state.craftingItems) || [];
+    const bosses = useWidgetStore((state) => state.bosses) || [];
 
     // 2. Aktif Sunucu Fiyatlarını Bul
     const activeProfile = serverProfiles.find(p => p.id === activeServerId);
@@ -23,9 +24,11 @@ export function useSharedWidgetData() {
 
     const characterWidget = widgets.find((w) => w.type === "character-stats");
     const metinWidget = widgets.find((w) => w.type === "metin-settings");
+    const bossWidget = widgets.find((w) => w.type === "boss-settings");
 
     const userStats = characterWidget?.data || { damage: 3000, hitsPerSecond: 2.5, findTime: 10 };
     const metinList = metinWidget?.data?.metins || MASTER_REGISTRY.metinTemplates;
+
 
     // 4. Market Birleştirme
     const marketItems = useMemo(() => {
@@ -33,5 +36,5 @@ export function useSharedWidgetData() {
     }, [itemRegistry, prices]);
 
     // 5. Hepsini Paketle
-    return { userStats, metinList, marketItems, craftingItems, prices, multipliers };
+    return { userStats, metinList, marketItems, craftingItems, prices, multipliers, bosses };
 }

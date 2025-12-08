@@ -48,9 +48,9 @@ function PersonalAccumulationTab({ userStats, metinList, marketItems }) {
         return calculateItemYields(selectedMetin, userStats, safeDuration);
     }, [selectedMetin, userStats, duration]);
 
-    const getItemName = (originalId) => {
-        const item = marketItems.find(i => i.originalId === originalId);
-        return item ? item.name : originalId;
+    const getItemName = (targetId) => {
+        const item = marketItems.find(i => i.id === targetId || i.originalId === targetId);
+        return item ? item.name : targetId;
     };
 
     return (
@@ -193,7 +193,7 @@ function MarketAccumulationTab({ userStats, metinList, craftingItems, marketItem
 
         const supplyList = Object.entries(totalSupply)
             .map(([itemId, count]) => {
-                const item = marketItems.find(i => i.originalId === itemId);
+                const item = marketItems.find(i => i.id === itemId || i.originalId === itemId);
                 return {
                     itemId,
                     name: item ? item.name : itemId,
@@ -356,35 +356,37 @@ export default function MarketSupplyWidget({ id, data, isSelected, onClick, onHi
                 }`}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
-            {/* Hide Button */}
-            <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onHide && onHide();
-                }}
-                className="absolute top-4 right-4 z-20 p-2 bg-white/10 backdrop-blur-sm shadow-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-violet-400 hover:bg-violet-500/20 border border-white/20"
-            >
-                <EyeOff className="w-4 h-4" />
-            </motion.button>
-
             {/* Summary View */}
             {!isSelected && (
-                <div className="w-full h-full p-6 relative flex flex-col items-center justify-center">
-                    <Package className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 opacity-50 rotate-12 pointer-events-none" />
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/10">
-                            <Package className="w-8 h-8 text-violet-400" />
+                <>
+                    {/* Hide Button */}
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onHide && onHide();
+                        }}
+                        className="absolute top-4 right-4 z-20 p-2 bg-white/10 backdrop-blur-sm shadow-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-violet-400 hover:bg-violet-500/20 border border-white/20"
+                    >
+                        <EyeOff className="w-4 h-4" />
+                    </motion.button>
+
+                    <div className="w-full h-full p-6 relative flex flex-col items-center justify-center">
+                        <Package className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 opacity-50 rotate-12 pointer-events-none" />
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/10">
+                                <Package className="w-8 h-8 text-violet-400" />
+                            </div>
                         </div>
+                        <span className="text-2xl font-bold text-white whitespace-nowrap">
+                            Arz Simülasyonu
+                        </span>
+                        <span className="text-sm text-white/60 mt-2 text-center">
+                            Kişisel ve Piyasa Birikimi
+                        </span>
                     </div>
-                    <span className="text-2xl font-bold text-white whitespace-nowrap">
-                        Arz Simülasyonu
-                    </span>
-                    <span className="text-sm text-white/60 mt-2 text-center">
-                        Kişisel ve Piyasa Birikimi
-                    </span>
-                </div>
+                </>
             )}
 
             {/* Detail View */}

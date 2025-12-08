@@ -1,31 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence, useMotionValue, useMotionTemplate, animate } from "framer-motion";
-import { LayoutTemplate } from "lucide-react";
-import FinancialWidget from "./components/FinancialWidget";
-import MarketWidget from "./components/widgets/MarketWidget";
-import CharacterWidget from "./components/widgets/CharacterWidget";
-import AnalysisWidget from "./components/widgets/AnalysisWidget";
-import MetinSettingsWidget from "./components/widgets/MetinSettingsWidget";
-import DamageProgressionWidget from "./components/widgets/DamageProgressionWidget";
-import MarketSupplyWidget from "./components/widgets/MarketSupplyWidget";
-import CraftingWidget from "./components/widgets/CraftingWidget";
+import Link from "next/link";
+import { motion, AnimatePresence, useMotionValue } from "framer-motion";
+import { LayoutTemplate, Cpu, ArrowRight } from "lucide-react";
 import WorkspaceDock from "./components/WorkspaceDock";
 import useWidgetStore from "./store/useWidgetStore";
-import { WIDGET_TYPES } from "./store/constants";
-
-// Widget component mapping
-const WIDGET_COMPONENTS = {
-  [WIDGET_TYPES.MARKET]: MarketWidget,
-  [WIDGET_TYPES.CHARACTER]: CharacterWidget,
-  [WIDGET_TYPES.ANALYSIS]: AnalysisWidget,
-  [WIDGET_TYPES.METIN_SETTINGS]: MetinSettingsWidget,
-  [WIDGET_TYPES.DAMAGE_PROGRESSION]: DamageProgressionWidget,
-  [WIDGET_TYPES.MARKET_SUPPLY]: MarketSupplyWidget,
-  [WIDGET_TYPES.CRAFTING]: CraftingWidget,
-  // All other widgets use FinancialWidget
-};
+import { getWidgetComponent } from "./components/WidgetRegistry";
 
 export default function Home() {
   const [selectedId, setSelectedId] = useState(null);
@@ -56,14 +37,31 @@ export default function Home() {
     mouseY.set(clientY - top);
   }
 
-  // Get the appropriate widget component
-  const getWidgetComponent = (type) => {
-    return WIDGET_COMPONENTS[type] || FinancialWidget;
-  };
-
   return (
     <main className="min-h-screen p-6 md:p-8 lg:p-12">
       <div className="max-w-7xl mx-auto">
+        {/* V2 PRO WORKSTATION GEÇİŞ BUTONU */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5, type: "spring" }}
+          className="absolute top-6 left-6 z-50 hidden md:block"
+        >
+          <Link href="/v2">
+            <motion.button
+              whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(6,182,212,0.4)" }}
+              whileTap={{ scale: 0.95 }}
+              className="group flex items-center gap-3 px-5 py-2.5 bg-black/40 backdrop-blur-xl border border-cyan-500/30 rounded-full text-cyan-400 font-bold text-xs tracking-wider hover:bg-cyan-500/10 transition-all shadow-lg shadow-cyan-900/20"
+            >
+              <div className="p-1.5 bg-cyan-500/20 rounded-full group-hover:bg-cyan-500/30 transition-colors border border-cyan-500/20">
+                <Cpu className="w-4 h-4" />
+              </div>
+              <span>PRO WORKSTATION</span>
+              <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform opacity-60 group-hover:opacity-100" />
+            </motion.button>
+          </Link>
+        </motion.div>
+
         <header className="mb-8 flex flex-col items-center justify-center relative z-10">
           <motion.div
             className="relative"
@@ -74,26 +72,16 @@ export default function Home() {
             whileHover={{ scale: 1.05, filter: "brightness(1.2)" }}
           >
             {/* Video Container with Aggressive Masking */}
-            <div
-              className="relative h-24 w-48 flex items-center justify-center overflow-hidden"
-              style={{
-                // 1. CSS Mask: Start fading from 20% center, fully invisible by 70%
-                maskImage: "radial-gradient(ellipse at center, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 70%)",
-                WebkitMaskImage: "radial-gradient(ellipse at center, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 70%)",
-              }}
-            >
-              <video
-                src="/w2-logo.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                // 'object-cover' and 'scale-150' ensures the edges of the video are pushed way out of the visible mask area
-                className="h-full w-full object-cover scale-125 mix-blend-screen pointer-events-none"
+            <div className="relative h-24 w-48 flex items-center justify-center overflow-hidden">
+              <img
+                src="/w2-logo-new.png"
+                alt="W2 Logo"
+                className="h-full w-full object-contain"
+                style={{
+                  maskImage: "radial-gradient(circle, black 50%, transparent 100%)",
+                  WebkitMaskImage: "radial-gradient(circle, black 50%, transparent 100%)",
+                }}
               />
-
-              {/* 2. Safety Vignette Overlay (Extra layer to kill edges) */}
-              <div className="absolute inset-0 bg-radial-gradient-to-t from-black via-transparent to-transparent opacity-50" />
             </div>
           </motion.div>
 

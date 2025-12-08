@@ -177,25 +177,27 @@ export default function MetinSettingsWidget({ id, data, isSelected, onClick, onH
                 }`}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
-            {/* Hide Button */}
-            <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onHide && onHide();
-                }}
-                className="absolute top-4 right-4 z-20 p-2 bg-white/10 backdrop-blur-sm shadow-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-cyan-400 hover:bg-cyan-500/20 border border-white/20"
-            >
-                <EyeOff className="w-4 h-4" />
-            </motion.button>
-
             {/* Summary View */}
             {!isSelected && (
-                <div className="w-full h-full p-6 relative">
-                    <Settings className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 opacity-50 rotate-12 pointer-events-none" />
-                    <MetinSummary metins={metins} />
-                </div>
+                <>
+                    {/* Hide Button */}
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onHide && onHide();
+                        }}
+                        className="absolute top-4 right-4 z-20 p-2 bg-white/10 backdrop-blur-sm shadow-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-cyan-400 hover:bg-cyan-500/20 border border-white/20"
+                    >
+                        <EyeOff className="w-4 h-4" />
+                    </motion.button>
+
+                    <div className="w-full h-full p-6 relative">
+                        <Settings className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 opacity-50 rotate-12 pointer-events-none" />
+                        <MetinSummary metins={metins} />
+                    </div>
+                </>
             )}
 
             {/* Detail View */}

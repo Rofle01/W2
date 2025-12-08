@@ -1,3 +1,6 @@
+
+import { ITEM_SOURCES, CRAFTING_TYPES } from '../constants';
+
 /**
  * Crafting Slice - Üretim, Boss Sandıkları ve Dönüşüm Zincirleri
  * 
@@ -11,14 +14,14 @@ export const createCraftingSlice = (set) => ({
     /**
      * Yeni boş bir crafting öğesi oluşturur
      * @param {string} name - Öğenin adı (Örn: "Azrail Sandığı")
-     * @param {'recipe'|'container'} type - Öğe tipi
+     * @param {'recipe'|'container'|'fragment'} type - Öğe tipi
      */
     addCraftingItem: (name, type) =>
         set((state) => {
             const newItem = {
                 id: crypto.randomUUID(),
                 name: name || 'Yeni Öğe',
-                type: type || 'recipe',
+                type: type || CRAFTING_TYPES.RECIPE,
                 contents: [],
             };
             state.craftingItems.push(newItem);
@@ -65,7 +68,7 @@ export const createCraftingSlice = (set) => ({
                 const newContent = {
                     id: crypto.randomUUID(),
                     itemId: content.itemId,
-                    sourceType: content.sourceType || 'market', // 'market' veya 'crafting'
+                    sourceType: content.sourceType || ITEM_SOURCES.MARKET, // 'market' veya 'crafting'
                     count: content.count || 1,
                     chance: content.chance || 100, // Container için şans (%)
                 };

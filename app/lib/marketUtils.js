@@ -76,6 +76,22 @@ export function mergeMarketData(registry, priceMap) {
  * //   idMap: { 'temp-1': 'existing-id' }
  * // }
  */
+// Helper for robust string matching
+const normalizeForMatch = (str) => {
+    if (!str) return '';
+    return String(str)
+        .normalize('NFC')
+        .replace(/['".,\/#!$%\^&\*;:{}=\-_`~()]/g, "") // Noktalama işaretlerini at
+        .replace(/\s/g, "") // TÜM BOŞLUKLARI sil (Zehir Kılıcı -> zehirkılıcı)
+        .toLocaleLowerCase('tr');
+};
+
+// Helper for item id generation
+export function generateStableId(name) {
+    const trMap = { 'ç': 'c', 'Ç': 'c', 'ğ': 'g', 'Ğ': 'g', 'ş': 's', 'Ş': 's', 'ü': 'u', 'Ü': 'u', 'ı': 'i', 'I': 'i', 'İ': 'i', 'ö': 'o', 'Ö': 'o' };
+    return 'item_' + String(name).trim().split('').map(char => trMap[char] || char).join('').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
 export function syncLocalMarketItems(importedData, registry) {
     const newRegistryItems = [];
     const idMap = {}; // TempID/Name -> RealID
@@ -96,45 +112,45 @@ export function syncLocalMarketItems(importedData, registry) {
 
         // Güvenlik: İsim yoksa atla
         if (!itemName) {
-            console.warn('syncLocalMarketItems: Skipping item without name', importedItem);
             return;
         }
 
-        // 1. İsim Normalizasyonu (Büyük/Küçük harf ve boşluk temizliği)
-        const cleanName = itemName.toString().trim().toLowerCase();
+        // 1. İsim Normalizasyonu
+        const importNameNorm = normalizeForMatch(itemName);
 
-        // 2. Katalogda Ara
+        // 2. Önce Mevcut Katalogda Ara (ID'yi kurtarmak için)
+        // Eğer katalogda bu isimde bir eşya zaten varsa, ONUN ID'sini kullan
         let match = safeRegistry.find(
-            (regItem) => regItem.name.trim().toLowerCase() === cleanName
+            (regItem) => normalizeForMatch(regItem.name) === importNameNorm
         );
 
         // 3. Eğer katalogda yoksa, şu an oluşturduğumuz "yeni eklenecekler" listesinde var mı?
         // (Aynı Excel içinde mükerrer kayıt varsa engellemek için)
         if (!match) {
             match = newRegistryItems.find(
-                (newItem) => newItem.name.trim().toLowerCase() === cleanName
+                (newItem) => normalizeForMatch(newItem.name) === importNameNorm
             );
         }
 
-        let itemId;
         const mapKey = importedItem.tempId || itemName; // Use tempId if available, otherwise use name
 
         if (match) {
-            // Eşleşme Var: Mevcut ID'yi kullan
-            itemId = match.id;
-            idMap[mapKey] = itemId;
+            // ✅ KRİTİK: Eşleşme varsa ESKİ ID'yi kullan!
+            // Böylece fiyat güncellemesi doğru itema gider. (Yeni ID üretme!)
+            idMap[mapKey] = match.id;
         } else {
-            // Eşleşme Yok: Yeni Item Oluştur
-            itemId = crypto.randomUUID();
+            // Eşleşme yoksa yeni oluştur -> ARTIK STABLE ID KULLAN
+            const newId = generateStableId(itemName);
             newRegistryItems.push({
-                id: itemId,
+                id: newId,
                 originalId: null,
-                name: itemName.trim(), // Orijinal yazımı koru (Örn: "Zehir Kılıcı")
+                name: itemName.trim(), // Orijinal yazımı koru
                 category: importedItem.category || 'ithal',
                 icon: 'Circle', // Varsayılan ikon
+                origin: 'market',
                 isSystemItem: false
             });
-            idMap[mapKey] = itemId;
+            idMap[mapKey] = newId;
         }
     });
 

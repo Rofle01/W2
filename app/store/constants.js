@@ -1,6 +1,32 @@
 import { MASTER_REGISTRY } from "../data/initialData";
 
-// 1. WIDGET TİPLERİ (ENUM) - Tek Gerçeklik Kaynağı
+// ============================================================================
+// 1. OYUN MEKANİKLERİ (ENUMS)
+// ============================================================================
+
+// Eşya Kaynakları
+export const ITEM_SOURCES = {
+    MARKET: 'market',
+    CRAFTING: 'crafting',
+    SYSTEM: 'system' // Oyunun kendi itemları
+};
+
+// Crafting Tipleri
+export const CRAFTING_TYPES = {
+    RECIPE: 'recipe',       // X + Y = Z
+    CONTAINER: 'container', // Sandık / Boss
+    FRAGMENT: 'fragment'    // Parça
+};
+
+// Boss Soğuma Tipleri
+export const COOLDOWN_TYPES = {
+    ENTRY: 'entry', // Girişten itibaren
+    EXIT: 'exit'    // Çıkıştan itibaren
+};
+
+// ============================================================================
+// 2. WIDGET TİPLERİ (ENUM) - Tek Gerçeklik Kaynağı
+// ============================================================================
 export const WIDGET_TYPES = {
     MARKET: "market-prices",
     CHARACTER: "character-stats",
@@ -8,10 +34,13 @@ export const WIDGET_TYPES = {
     ANALYSIS: "analysis-tool",
     DAMAGE_PROGRESSION: "damage-progression",
     MARKET_SUPPLY: "market-supply",
-    CRAFTING: "crafting-manager"
+    CRAFTING: "crafting-manager",
+    BOSS_SETTINGS: "boss-settings"
 };
 
-// 2. WIDGET KAYDI
+// ============================================================================
+// 3. WIDGET KAYDI
+// ============================================================================
 export const WIDGET_REGISTRY = {
     [WIDGET_TYPES.MARKET]: {
         title: "Piyasa Fiyatları",
@@ -60,5 +89,11 @@ export const WIDGET_REGISTRY = {
         icon: "Hammer",
         defaultData: { items: [] },
         description: "Dönüşüm reçeteleri ve boss sandık içeriklerini yönetin."
+    },
+    [WIDGET_TYPES.BOSS_SETTINGS]: {
+        title: "Boss Ayarları",
+        icon: "Shield",
+        defaultData: {},
+        description: "Boss rotasyonlarını, soğuma sürelerini ve dropları yönetin."
     },
 };

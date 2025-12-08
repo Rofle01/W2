@@ -1,36 +1,13 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { X, EyeOff, Wrench, Plus, Trash2, Package, Sparkles, PieChart } from "lucide-react";
 import useWidgetStore from "../../store/useWidgetStore";
-import { resolveItemPrice } from "../../lib/calculator";
+import { resolveItemPrice } from "../../lib/math/core";
+import { formatCurrency } from "../../lib/math/formatters";
 import { useSharedWidgetData } from "../../hooks/useSharedWidgetData";
-
-// Helper: Format currency
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('tr-TR', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(amount);
-};
-
-// Helper: Circular Dependency Check (DFS)
-const hasCircularDependency = (candidateId, targetId, allItems, visited = new Set()) => {
-    if (candidateId === targetId) return true;
-    if (visited.has(candidateId)) return false;
-
-    visited.add(candidateId);
-    const candidateItem = allItems.find(i => i.id === candidateId);
-    if (!candidateItem || !candidateItem.contents) return false;
-
-    return candidateItem.contents.some(content => {
-        if (content.sourceType === 'crafting') {
-            return hasCircularDependency(content.itemId, targetId, allItems, visited);
-        }
-        return false;
-    });
-};
+import { useCraftingSync, hasCircularDependency } from "../../hooks/useCraftingSync";
 
 // ============================================================================
 // SUMMARY VIEW COMPONENT
@@ -99,18 +76,15 @@ function CraftingDetailView({ metinList, marketItems }) {
     }, [craftingItems, selectedItemId]);
 
     // Calculate price for selected item (Preview)
-    // Note: This uses the calculator lib for display, but the "Push" logic happens in the main widget
+    // Note: This uses the calculator lib for display
     const calculatedPrice = useMemo(() => {
         if (!selectedItem) return 0;
         return resolveItemPrice(
             selectedItem.id,
             'crafting',
-            marketItems,
-            craftingItems,
-            metinList,
-            0
+            marketItems
         );
-    }, [selectedItem, marketItems, craftingItems, metinList]);
+    }, [selectedItem, marketItems]);
 
     // Handle add new crafting item
     const handleAddItem = () => {
@@ -599,78 +573,8 @@ export default function CraftingWidget({ id, data, isSelected, onClick, onHide }
     // Diğer widgetlardan gelen verileri çekiyoruz
     const { metinList, marketItems } = useSharedWidgetData();
 
-    // Store Data & Actions
-    const craftingItems = useWidgetStore((state) => state.craftingItems);
-    const syncCraftedItems = useWidgetStore((state) => state.syncCraftedItems);
-
-    // ✅ THE BRIDGE: OTOMATİK SENKRONİZASYON
-    // Crafting listesi veya market fiyatları değiştiğinde,
-    // üretim itemlarının maliyetlerini hesapla ve Markete gönder.
-    useEffect(() => {
-        if (!craftingItems.length) return;
-
-        const updates = craftingItems.map(item => {
-            // Basit Maliyet Hesabı (Single-level calculation for stability)
-            // Note: Circular dependencies are mostly handled by the fact that if A needs B,
-            // and B is also a crafted item, B's price will be in 'marketItems' if it was synced previously.
-            // React's update cycle will eventually settle the prices.
-
-            let calculatedCost = 0;
-
-            if (item.type === 'recipe' && item.contents) {
-                // Reçete: İçeriklerin toplamı
-                calculatedCost = item.contents.reduce((total, content) => {
-                    // İçerik markette var mı?
-                    const ingredient = marketItems.find(i => i.id === content.itemId || i.originalId === content.itemId);
-                    const price = ingredient ? ingredient.price : 0;
-                    return total + (price * content.count);
-                }, 0);
-            }
-            else if (item.type === 'fragment' && item.targetId) {
-                // Parça: Hedef item / Adet
-                if (item.targetType === 'metin') {
-                    // Metin değeri hesapla
-                    const metin = metinList.find(m => m.id === item.targetId);
-                    if (metin) {
-                        const totalDropValue = metin.drops.reduce((acc, drop) => {
-                            const dropItem = marketItems.find(i => i.id === drop.itemId || i.originalId === drop.itemId);
-                            const price = dropItem ? dropItem.price : 0;
-                            // Use avg count if min/max exists, else count
-                            const count = drop.minCount ? (drop.minCount + drop.maxCount) / 2 : drop.count;
-                            return acc + (price * count * (drop.chance / 100));
-                        }, 0);
-                        calculatedCost = totalDropValue / (item.amount || 1);
-                    }
-                } else {
-                    // Normal item hedefli
-                    const target = marketItems.find(i => i.id === item.targetId || i.originalId === item.targetId);
-                    const targetPrice = target ? target.price : 0;
-                    const amount = item.amount || 1;
-                    calculatedCost = targetPrice / amount;
-                }
-            }
-            else if (item.type === 'container' && item.contents) {
-                // Sandık: Beklenen Değer (Expected Value)
-                calculatedCost = item.contents.reduce((total, content) => {
-                    const dropItem = marketItems.find(i => i.id === content.itemId || i.originalId === content.itemId);
-                    const price = dropItem ? dropItem.price : 0;
-                    const chance = (content.chance || 0) / 100;
-                    return total + (price * content.count * chance);
-                }, 0);
-            }
-
-            return {
-                id: item.id,
-                name: item.name,
-                price: calculatedCost
-            };
-        });
-
-        // Hepsini Markete İt
-        // Debounce could be added here if performance becomes an issue, but for now direct sync is more responsive.
-        syncCraftedItems(updates);
-
-    }, [craftingItems, marketItems, syncCraftedItems, metinList]);
+    // Use Custom Hook for Automatic Synchronization
+    useCraftingSync(); // Hook mantığına taşındı
 
     return (
         <motion.div
@@ -683,25 +587,27 @@ export default function CraftingWidget({ id, data, isSelected, onClick, onHide }
                 }`}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
-            {/* Gizle Butonu */}
-            <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onHide && onHide();
-                }}
-                className="absolute top-4 right-4 z-20 p-2 bg-white/10 backdrop-blur-sm shadow-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-fuchsia-400 hover:bg-fuchsia-500/20 border border-white/20"
-            >
-                <EyeOff className="w-4 h-4" />
-            </motion.button>
-
             {/* Özet Görünümü (Küçük Kart) */}
             {!isSelected && (
-                <div className="w-full h-full p-6 relative">
-                    <Wrench className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 opacity-50 rotate-12 pointer-events-none" />
-                    <CraftingSummaryView />
-                </div>
+                <>
+                    {/* Gizle Butonu */}
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onHide && onHide();
+                        }}
+                        className="absolute top-4 right-4 z-20 p-2 bg-white/10 backdrop-blur-sm shadow-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-fuchsia-400 hover:bg-fuchsia-500/20 border border-white/20"
+                    >
+                        <EyeOff className="w-4 h-4" />
+                    </motion.button>
+
+                    <div className="w-full h-full p-6 relative">
+                        <Wrench className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 opacity-50 rotate-12 pointer-events-none" />
+                        <CraftingSummaryView />
+                    </div>
+                </>
             )}
 
             {/* Detay Görünümü (Tam Ekran) */}

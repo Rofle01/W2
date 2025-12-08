@@ -1,4 +1,5 @@
 import { MASTER_REGISTRY, INITIAL_SERVERS } from "../../data/initialData";
+import { ITEM_SOURCES } from '../constants';
 
 export const createMarketSlice = (set, get) => ({
     // --- STATE ---
@@ -33,7 +34,7 @@ export const createMarketSlice = (set, get) => ({
         const itemDef = itemRegistry.find(i => i.id === itemId);
 
         // Eğer item üretimden geliyorsa ve fiyatı elle değiştirilmeye çalışılıyorsa engelle
-        if (itemDef && itemDef.origin === 'crafting') {
+        if (itemDef && itemDef.origin === ITEM_SOURCES.CRAFTING) {
             console.warn(`Item ${itemId} is a crafted item. Price cannot be updated manually.`);
             return;
         }
@@ -58,7 +59,7 @@ export const createMarketSlice = (set, get) => ({
                     name: cItem.name,
                     category: "üretim", // Otomatik kategori
                     icon: "Hammer",     // Üretim ikonu
-                    origin: "crafting", // 🔒 KİLİT MEKANİZMASI
+                    origin: ITEM_SOURCES.CRAFTING, // 🔒 KİLİT MEKANİZMASI
                     isSystemItem: false
                 });
             } else {
@@ -69,7 +70,7 @@ export const createMarketSlice = (set, get) => ({
                     state.masterRegistry[itemIndex].name = cItem.name;
                     // Emin olmak için origin set et
                     if (!state.masterRegistry[itemIndex].origin) {
-                        state.masterRegistry[itemIndex].origin = "crafting";
+                        state.masterRegistry[itemIndex].origin = ITEM_SOURCES.CRAFTING;
                     }
                 }
             }
@@ -95,15 +96,20 @@ export const createMarketSlice = (set, get) => ({
     // 3. Katalog Yönetimi (Yeni Item Ekleme - Tekli)
     registerItem: (item) => set((state) => {
         const generatedId = item.id || item.name.toLowerCase().trim().replace(/\s+/g, '_');
-        const exists = state.masterRegistry.some(i => i.id === generatedId);
 
-        if (!exists) {
+        // Helper for normalization
+        const normalize = (str) => String(str).trim().toLocaleLowerCase('tr');
+
+        const idExists = state.masterRegistry.some(i => i.id === generatedId);
+        const nameExists = state.masterRegistry.some(i => normalize(i.name) === normalize(item.name));
+
+        if (!idExists && !nameExists) {
             state.masterRegistry.push({
                 id: generatedId,
                 name: item.name,
                 category: item.category || "genel",
                 icon: item.icon || "Circle",
-                origin: "user", // Kullanıcı ekledi
+                origin: ITEM_SOURCES.MARKET, // Kullanıcı ekledi (Market Kaynaklı)
                 isSystemItem: false
             });
         }
@@ -111,17 +117,27 @@ export const createMarketSlice = (set, get) => ({
 
     // Toplu Item Kaydı (Import için)
     registerItems: (items) => set((state) => {
-        items.forEach(item => {
-            const generatedId = item.id || item.name.toLowerCase().trim().replace(/\s+/g, '_');
-            const exists = state.masterRegistry.some(i => i.id === generatedId);
+        // YENİ NORMALİZASYON (marketUtils ile birebir aynı olmalı)
+        const normalize = (str) => String(str)
+            .normalize('NFC')
+            .replace(/['".,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
+            .replace(/\s/g, "")
+            .toLocaleLowerCase('tr');
 
-            if (!exists) {
+        items.forEach(item => {
+            // ID kontrolü
+            const idExists = state.masterRegistry.some(i => i.id === item.id);
+
+            // İsim kontrolü (Agresif)
+            const nameExists = state.masterRegistry.some(i => normalize(i.name) === normalize(item.name));
+
+            if (!idExists && !nameExists) {
                 state.masterRegistry.push({
-                    id: generatedId,
+                    id: item.id, // Burada gelen ID'yi olduğu gibi kullanıyoruz
                     name: item.name,
                     category: item.category || "genel",
                     icon: item.icon || "Circle",
-                    origin: "user",
+                    origin: ITEM_SOURCES.MARKET,
                     isSystemItem: false
                 });
             }
@@ -142,7 +158,7 @@ export const createMarketSlice = (set, get) => ({
             }
             // Sadece sistem itemlarını ve crafting itemlarını tut
             // User tarafından eklenenleri sil
-            state.masterRegistry = state.masterRegistry.filter(item => item.isSystemItem || item.origin === 'crafting');
+            state.masterRegistry = state.masterRegistry.filter(item => item.isSystemItem || item.origin === ITEM_SOURCES.CRAFTING);
         }
     }),
 });

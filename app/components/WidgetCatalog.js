@@ -31,26 +31,26 @@ export default function WidgetCatalog({ isOpen, onClose }) {
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="fixed inset-0 m-auto w-full max-w-2xl h-fit max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden z-50 flex flex-col"
+                        className="fixed inset-0 m-auto w-full max-w-2xl h-fit max-h-[80vh] bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden z-50 flex flex-col"
                     >
                         {/* Header */}
-                        <div className="p-6 border-b border-zinc-100 flex items-center justify-between bg-white">
+                        <div className="p-6 border-b border-white/10 flex items-center justify-between">
                             <div>
-                                <h2 className="text-xl font-bold text-zinc-800">Widget Ekle</h2>
-                                <p className="text-zinc-500 text-sm mt-1">
+                                <h2 className="text-xl font-bold text-white">Widget Ekle</h2>
+                                <p className="text-white/60 text-sm mt-1">
                                     Panelinize eklemek için bir araç seçin
                                 </p>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
+                                className="p-2 hover:bg-white/10 rounded-full transition-colors"
                             >
-                                <X className="w-5 h-5 text-zinc-500" />
+                                <X className="w-5 h-5 text-white/80" />
                             </button>
                         </div>
 
                         {/* Grid */}
-                        <div className="p-6 overflow-y-auto bg-zinc-50/50">
+                        <div className="p-6 overflow-y-auto custom-scrollbar">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {Object.entries(WIDGET_REGISTRY).map(([type, def]) => {
                                     const Icon = LucideIcons[def.icon] || LucideIcons.HelpCircle;
@@ -61,21 +61,21 @@ export default function WidgetCatalog({ isOpen, onClose }) {
                                             onClick={() => handleAdd(type)}
                                             whileHover={{ scale: 1.02, y: -2 }}
                                             whileTap={{ scale: 0.98 }}
-                                            className="flex items-start gap-4 p-4 bg-white rounded-xl border border-zinc-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all text-left group"
+                                            className="flex items-start gap-4 p-4 bg-white/5 rounded-xl border border-white/10 shadow-sm hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:border-cyan-500/50 transition-all text-left group"
                                         >
-                                            <div className="p-3 bg-zinc-100 rounded-lg group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-                                                <Icon className="w-6 h-6 text-zinc-600 group-hover:text-blue-600" />
+                                            <div className="p-3 bg-white/10 rounded-lg group-hover:bg-cyan-500/20 group-hover:text-cyan-400 transition-colors">
+                                                <Icon className="w-6 h-6 text-cyan-400 group-hover:text-cyan-300" />
                                             </div>
                                             <div className="flex-1">
-                                                <h3 className="font-semibold text-zinc-800 group-hover:text-blue-700 transition-colors">
+                                                <h3 className="font-semibold text-white group-hover:text-cyan-400 transition-colors">
                                                     {def.title}
                                                 </h3>
-                                                <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
+                                                <p className="text-xs text-white/50 mt-1 leading-relaxed group-hover:text-white/70">
                                                     {def.description || "Bu widget'ı panelinize ekleyin."}
                                                 </p>
                                             </div>
                                             <div className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Plus className="w-4 h-4 text-blue-500" />
+                                                <Plus className="w-4 h-4 text-cyan-500" />
                                             </div>
                                         </motion.button>
                                     );

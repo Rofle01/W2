@@ -4,6 +4,7 @@
  */
 
 import * as XLSX from 'xlsx';
+import { generateStableId } from './marketUtils';
 
 /**
  * Column name mappings for Excel export/import
@@ -276,33 +277,15 @@ export async function exportMetinsToExcel(metinList, marketItems, filename = 'me
 const sanitizeText = (text) => {
     if (!text) return '';
     return String(text)
-        .normalize('NFC') // Türkçe karakterlerin kodlamasını standartlaştırır (İ vs i+nokta)
-        .replace(/\u00A0/g, ' ') // Non-breaking space (NBSP) karakterini normal boşluğa çevirir
-        .replace(/\s+/g, ' ') // Çift boşlukları ve tabları tek boşluğa indirir
-        .trim(); // Baştaki ve sondaki boşlukları atar
+        .normalize('NFC')
+        .replace(/[\u200B-\u200D\uFEFF]/g, '') // Görünmez karakterleri sil
+        .replace(/\u00A0/g, ' ') // Non-breaking space -> normal space
+        .replace(/\s+/g, ' ') // Çift boşlukları tek yap
+        .trim();
 };
 
-// HELPER: İsimden Sabit ID Üretici (Slugify)
-function generateStableId(name) {
-    const trMap = {
-        'ç': 'c', 'Ç': 'c',
-        'ğ': 'g', 'Ğ': 'g',
-        'ş': 's', 'Ş': 's',
-        'ü': 'u', 'Ü': 'u',
-        'ı': 'i', 'I': 'i',
-        'İ': 'i',
-        'ö': 'o', 'Ö': 'o'
-    };
-
-    return 'metin_' + name
-        .trim()
-        .split('')
-        .map(char => trMap[char] || char) // Türkçe karakterleri çevir
-        .join('')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '_') // Harf ve sayı dışındakileri _ yap
-        .replace(/^_+|_+$/g, ''); // Baştaki ve sondaki _ leri sil
-}
+// HELPER: İsimden Sabit ID Üretici (Slugify) - Imported from marketUtils
+// function generateStableId(name) { ... }
 
 /**
  * Parse and import metin list from Excel or JSON file
@@ -390,7 +373,10 @@ export async function parseMetinImport(file) {
             const rawName = row['Metin Adı'] || row.metinName || row.name;
             const metinName = sanitizeText(rawName);
             const hp = parseInt(row['HP'] || row.hp) || 100000;
-            const itemName = row['Eşya Adı'] || row.itemName || row.item;
+
+            const rawItemName = row['Eşya Adı'] || row.itemName || row.item;
+            const itemName = sanitizeText(rawItemName); // Temizlenmiş isim
+
             const count = parseInt(row['Adet'] || row.count) || 1;
             const chance = parseFloat(row['Şans'] || row.chance) || 100;
 
@@ -420,7 +406,7 @@ export async function parseMetinImport(file) {
                 if (!detectedItemsMap.has(itemName)) {
                     detectedItemsMap.set(itemName, {
                         originalName: itemName,
-                        tempId: `temp-item-${crypto.randomUUID()}`,
+                        tempId: generateStableId(itemName),
                         icon: 'Circle'
                     });
                 }

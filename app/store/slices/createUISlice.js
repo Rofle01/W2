@@ -145,4 +145,9 @@ export const createUISlice = (set, get) => ({
                 workspace.activeMarketProfileId = profileId;
             }
         }),
+
+    nukeStore: () => {
+        localStorage.removeItem("financial-dashboard-storage");
+        window.location.reload();
+    },
 });

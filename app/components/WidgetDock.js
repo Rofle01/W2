@@ -30,11 +30,11 @@ export default function WidgetDock() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="absolute bottom-20 right-0 w-64 bg-white rounded-2xl shadow-lg border border-zinc-200 overflow-hidden"
+                        className="absolute bottom-20 right-0 w-64 bg-black/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden"
                     >
-                        <div className="p-4 border-b border-zinc-200 bg-zinc-50">
-                            <h3 className="text-sm font-semibold text-zinc-800">Gizli Widget'lar</h3>
-                            <p className="text-xs text-zinc-500 mt-1">
+                        <div className="p-4 border-b border-white/10 bg-white/5">
+                            <h3 className="text-sm font-semibold text-white">Gizli Widget'lar</h3>
+                            <p className="text-xs text-white/50 mt-1">
                                 Geri getirmek için tıklayın
                             </p>
                         </div>
@@ -54,15 +54,15 @@ export default function WidgetDock() {
                                         onClick={() => {
                                             toggleWidgetVisibility(widget.id);
                                         }}
-                                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-100 last:border-b-0"
+                                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 transition-colors text-left border-b border-white/5 last:border-b-0"
                                     >
-                                        <div className="p-2 bg-zinc-100 rounded-lg">
-                                            <Icon className="w-4 h-4 text-zinc-600" />
+                                        <div className="p-2 bg-white/10 rounded-lg">
+                                            <Icon className="w-4 h-4 text-white/70" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-sm font-medium text-zinc-800">{title}</p>
+                                            <p className="text-sm font-medium text-white">{title}</p>
                                         </div>
-                                        <Eye className="w-4 h-4 text-zinc-400" />
+                                        <Eye className="w-4 h-4 text-white/40" />
                                     </motion.button>
                                 );
                             })}
