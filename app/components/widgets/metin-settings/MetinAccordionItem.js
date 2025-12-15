@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
+import SmartInput from "@/app/components/ui/SmartInput";
 
 const formatNumber = (num) => {
     return new Intl.NumberFormat('tr-TR').format(num);
@@ -52,17 +53,13 @@ export default function MetinAccordionItem({
     };
 
     const handleHpChange = (newHp) => {
-        const hp = parseFloat(newHp);
-        if (!isNaN(hp) && hp > 0) {
-            onUpdateHP(metin.id, hp);
+        if (newHp > 0) {
+            onUpdateHP(metin.id, newHp);
         }
     };
 
     const handleDropChange = (dropId, field, value) => {
-        const numValue = parseFloat(value);
-        if (!isNaN(numValue) && numValue >= 0) {
-            onUpdateDrop(metin.id, dropId, field, numValue);
-        }
+        onUpdateDrop(metin.id, dropId, field, value);
     };
 
     const handleAddDrop = () => {
@@ -124,13 +121,12 @@ export default function MetinAccordionItem({
                                 <label className="block text-sm font-semibold text-white/80 mb-2">
                                     Metin HP
                                 </label>
-                                <input
-                                    type="number"
+                                <SmartInput
                                     value={metin.hp}
-                                    onChange={(e) => handleHpChange(e.target.value)}
+                                    onChange={(val) => handleHpChange(val)}
                                     className="w-full px-3 py-2 font-mono font-semibold text-white bg-black/60 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 placeholder:text-white/40 transition-all"
-                                    min="1"
-                                    step="1000"
+                                    min={1}
+                                    step={1000}
                                 />
                             </div>
 
@@ -164,29 +160,23 @@ export default function MetinAccordionItem({
                                                         <label className="block text-xs text-white/60 mb-1">
                                                             Adet
                                                         </label>
-                                                        <input
-                                                            type="number"
+                                                        <SmartInput
                                                             value={drop.count}
-                                                            onChange={(e) =>
-                                                                handleDropChange(drop.id, "count", e.target.value)
-                                                            }
+                                                            onChange={(val) => handleDropChange(drop.id, "count", val)}
                                                             className="w-full px-2 py-1 text-sm font-mono font-medium text-white bg-black/60 border border-white/10 rounded focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50"
-                                                            min="1"
+                                                            min={1}
                                                         />
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs text-white/60 mb-1">
                                                             Şans (%)
                                                         </label>
-                                                        <input
-                                                            type="number"
+                                                        <SmartInput
                                                             value={drop.chance}
-                                                            onChange={(e) =>
-                                                                handleDropChange(drop.id, "chance", e.target.value)
-                                                            }
+                                                            onChange={(val) => handleDropChange(drop.id, "chance", val)}
                                                             className="w-full px-2 py-1 text-sm font-mono font-medium text-white bg-black/60 border border-white/10 rounded focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50"
-                                                            min="0"
-                                                            max="100"
+                                                            min={0}
+                                                            max={100}
                                                         />
                                                     </div>
                                                 </div>

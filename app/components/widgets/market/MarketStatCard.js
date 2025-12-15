@@ -1,6 +1,6 @@
 import React from "react";
 import { Trash2, Download, FolderOpen, Plus } from "lucide-react";
-import { formatCurrency } from "../../../lib/calculator";
+import KNumber from "../../ui/KNumber";
 
 export default function MarketStatCard({
     totalValue,
@@ -20,7 +20,7 @@ export default function MarketStatCard({
                 <div>
                     <p className="text-sm text-white/70">Toplam Piyasa Değeri ({activeProfile?.name})</p>
                     <p className="text-2xl font-bold text-cyan-400">
-                        {formatCurrency(totalValue)} {activeProfile?.currency}
+                        <KNumber value={totalValue} /> {activeProfile?.currency}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">

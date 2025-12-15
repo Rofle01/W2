@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { X, EyeOff, Sword, Zap, Clock } from "lucide-react";
 import useWidgetStore from "../../store/useWidgetStore";
+import SmartInput from "../ui/SmartInput";
 
 // Helper: Format compact with safety check
 const formatCompact = (number) => {
@@ -50,10 +51,7 @@ function CharacterDetailView({ widgetId, stats }) {
     const updateWidgetData = useWidgetStore((state) => state.updateWidgetData);
 
     const handleChange = (field, value) => {
-        const numValue = parseFloat(value);
-        if (!isNaN(numValue) && numValue >= 0) {
-            updateWidgetData(widgetId, { [field]: numValue });
-        }
+        updateWidgetData(widgetId, { [field]: value });
     };
 
     return (
@@ -91,14 +89,13 @@ function CharacterDetailView({ widgetId, stats }) {
                             </p>
                         </div>
                     </div>
-                    <input
-                        type="number"
+                    <SmartInput
                         value={stats.damage || 0}
-                        onChange={(e) => handleChange('damage', e.target.value)}
+                        onChange={(val) => handleChange('damage', val)}
                         className="w-full px-4 py-3 text-lg font-mono font-semibold text-white bg-black/60 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 transition-all placeholder:text-white/20"
                         placeholder="3000"
-                        min="0"
-                        step="100"
+                        min={0}
+                        step={100}
                     />
                 </div>
 
@@ -117,14 +114,13 @@ function CharacterDetailView({ widgetId, stats }) {
                             </p>
                         </div>
                     </div>
-                    <input
-                        type="number"
+                    <SmartInput
                         value={stats.hitsPerSecond || 0}
-                        onChange={(e) => handleChange('hitsPerSecond', e.target.value)}
+                        onChange={(val) => handleChange('hitsPerSecond', val)}
                         className="w-full px-4 py-3 text-lg font-mono font-semibold text-white bg-black/60 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/50 transition-all placeholder:text-white/20"
                         placeholder="2.5"
-                        min="0"
-                        step="0.1"
+                        min={0}
+                        step={0.1}
                     />
                 </div>
 
@@ -143,14 +139,13 @@ function CharacterDetailView({ widgetId, stats }) {
                             </p>
                         </div>
                     </div>
-                    <input
-                        type="number"
+                    <SmartInput
                         value={stats.findTime || 0}
-                        onChange={(e) => handleChange('findTime', e.target.value)}
+                        onChange={(val) => handleChange('findTime', val)}
                         className="w-full px-4 py-3 text-lg font-mono font-semibold text-white bg-black/60 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all placeholder:text-white/20"
                         placeholder="10"
-                        min="0"
-                        step="1"
+                        min={0}
+                        step={1}
                     />
                 </div>
             </div>
@@ -189,9 +184,9 @@ export default function CharacterWidget({ id, data, isSelected, onClick, onHide 
             layoutId={`card-${id}`}
             layout
             onClick={!isSelected ? onClick : undefined}
-            className={`group rounded-3xl shadow-2xl cursor-pointer overflow-hidden backdrop-blur-xl border border-white/10 ${isSelected
-                ? "fixed inset-0 m-auto w-[90%] h-[90%] max-w-6xl z-[100] bg-black/80"
-                : "relative h-64 hover:-translate-y-1 hover:border-violet-400/50 transition-all duration-300 bg-black/20 hover:bg-black/40"
+            className={`group rounded-3xl shadow-2xl cursor-pointer overflow-hidden ${isSelected
+                ? "fixed inset-0 m-auto w-[90%] h-[90%] max-w-6xl z-[100] bg-black/80 backdrop-blur-xl border border-white/10"
+                : "relative h-64 hover:-translate-y-1 glass-panel hover:border-violet-400/50 transition-all duration-300"
                 }`}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >

@@ -259,9 +259,9 @@ export default function DamageProgressionWidget({ id, data, isSelected, onClick,
             layoutId={`card-${id}`}
             layout
             onClick={!isSelected ? onClick : undefined}
-            className={`group rounded-3xl shadow-2xl cursor-pointer overflow-hidden backdrop-blur-xl border border-white/10 ${isSelected
-                ? "fixed inset-0 m-auto w-[90%] h-[90%] max-w-6xl z-[100] bg-black/90 border border-white/10"
-                : "relative h-64 hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.1)] transition-all duration-300 bg-black/40 hover:bg-black/50 border border-white/10"
+            className={`group rounded-3xl shadow-2xl cursor-pointer overflow-hidden ${isSelected
+                ? "fixed inset-0 m-auto w-[90%] h-[90%] max-w-6xl z-[100] bg-black/90 backdrop-blur-xl border border-white/10"
+                : "relative h-64 hover:-translate-y-1 glass-panel hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.1)] transition-all duration-300"
                 }`}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >

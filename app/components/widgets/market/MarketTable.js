@@ -1,39 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Search, Plus } from "lucide-react";
 import * as LucideIcons from "lucide-react";
-
-// Performance Optimized Input Component
-const PriceInput = ({ value, onChange }) => {
-    const [localValue, setLocalValue] = useState(value);
-
-    useEffect(() => {
-        setLocalValue(value);
-    }, [value]);
-
-    const handleBlur = () => {
-        if (localValue !== value) {
-            onChange(localValue);
-        }
-    };
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            e.target.blur();
-        }
-    };
-
-    return (
-        <input
-            type="number"
-            value={localValue}
-            onChange={(e) => setLocalValue(e.target.value)}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            className="w-32 px-2 py-1 text-sm font-semibold text-white bg-black/50 border border-white/10 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/50 placeholder:text-white/20"
-            min="0"
-        />
-    );
-};
+import SmartInput from "@/app/components/ui/SmartInput"; // SmartInput Importu
 
 export default function MarketTable({
     filteredItems,
@@ -45,7 +13,7 @@ export default function MarketTable({
     return (
         <div className="flex-1 overflow-auto rounded-xl border border-white/10 backdrop-blur-sm">
             <table className="w-full">
-                <thead className="bg-black/80 sticky top-0 backdrop-blur-xl">
+                <thead className="bg-black/80 sticky top-0 backdrop-blur-xl z-10">
                     <tr>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-cyan-400 uppercase">İkon</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-cyan-400 uppercase">Eşya Adı</th>
@@ -92,9 +60,13 @@ export default function MarketTable({
                                         </span>
                                     </td>
                                     <td className="px-4 py-3">
-                                        <PriceInput
+                                        {/* BURASI GÜNCELLENDİ: SmartInput Kullanımı */}
+                                        <SmartInput
                                             value={item.price}
-                                            onChange={(newPrice) => onPriceChange(item.id, newPrice)}
+                                            onChange={(val) => onPriceChange(item.id, val)}
+                                            className="w-32 px-2 py-1 text-sm font-semibold text-white bg-black/50 border border-white/10 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/50 placeholder:text-white/20 transition-all"
+                                            min={0}
+                                            placeholder="0"
                                         />
                                     </td>
                                 </tr>

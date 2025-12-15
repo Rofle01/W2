@@ -2,6 +2,7 @@
 
 import { Award, TrendingUp } from "lucide-react";
 import { formatCompactCurrency } from "../../../lib/calculator";
+import SmartInput from "@/app/components/ui/SmartInput";
 
 export default function AnalysisKPIs({ bestMetin, netHourlyProfit, hourlyCost, setHourlyCost }) {
     return (
@@ -45,10 +46,10 @@ export default function AnalysisKPIs({ bestMetin, netHourlyProfit, hourlyCost, s
                 </div>
                 <div className="z-10 bg-black/20 p-2 rounded-lg border border-white/10">
                     <label className="block text-xs text-white/60 mb-1">Saatlik Masraf</label>
-                    <input
-                        type="number"
+                    <SmartInput
+                        min={0}
                         value={hourlyCost}
-                        onChange={(e) => setHourlyCost(Number(e.target.value))}
+                        onChange={(val) => setHourlyCost(val)}
                         className="w-24 bg-transparent text-right text-white font-bold focus:outline-none border-b border-white/20 focus:border-violet-400 transition-colors"
                         placeholder="0"
                     />

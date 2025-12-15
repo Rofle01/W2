@@ -1,42 +1,36 @@
-import { WIDGET_REGISTRY } from "../constants";
 
 export const createUISlice = (set, get) => ({
     // State
     activeWorkspaceId: "default-workspace",
-    isPerformanceMode: false,
+    activeTab: "overview", // Default Tab: "overview", "market", "analysis", "boss", "settings"
+
     workspaces: [
         {
             id: "default-workspace",
             name: "Ana Panel",
-            activeMarketProfileId: "default_server", // Default profile selection
-            widgets: [
-                {
-                    id: "default-money-input-widget",
-                    type: "money-input",
-                    isVisible: true,
-                    data: { amount: "" },
-                },
-                {
-                    id: "default-note-taker-widget",
-                    type: "note-taker",
-                    isVisible: true,
-                    data: { notes: "" },
-                },
-            ],
+            activeMarketProfileId: "default_server",
+            // Data storage for components (no layout info needed anymore)
+            data: {
+                moneyInput: { amount: "" },
+                noteTaker: { notes: "" }
+            }
         },
     ],
 
     // Actions
+    setActiveTab: (tabId) =>
+        set((state) => {
+            state.activeTab = tabId;
+        }),
+
     addWorkspace: (name) =>
         set((state) => {
-            // Get the first available market profile ID
             const defaultProfileId = state.serverProfiles?.[0]?.id || "default_server";
-
             const newWorkspace = {
                 id: crypto.randomUUID(),
                 name: name || "Yeni Panel",
-                activeMarketProfileId: defaultProfileId, // Assign default profile
-                widgets: [],
+                activeMarketProfileId: defaultProfileId,
+                data: {}
             };
             state.workspaces.push(newWorkspace);
             state.activeWorkspaceId = newWorkspace.id;
@@ -57,10 +51,7 @@ export const createUISlice = (set, get) => ({
 
     removeWorkspace: (workspaceId) =>
         set((state) => {
-            if (state.workspaces.length <= 1) {
-                console.warn("Son workspace silinemez!");
-                return;
-            }
+            if (state.workspaces.length <= 1) return;
             const workspaceIndex = state.workspaces.findIndex((ws) => ws.id === workspaceId);
             if (workspaceIndex === -1) return;
 
@@ -73,71 +64,44 @@ export const createUISlice = (set, get) => ({
             state.workspaces.splice(workspaceIndex, 1);
         }),
 
-    addWidget: (type) =>
+    // Data updater helper
+    updateComponentData: (workspaceId, componentKey, data) =>
         set((state) => {
-            if (!WIDGET_REGISTRY[type]) {
-                console.error(`Widget tipi "${type}" registry'de bulunamadı!`);
-                return;
-            }
-            const activeWorkspace = state.workspaces.find(
-                (ws) => ws.id === state.activeWorkspaceId
-            );
-            if (activeWorkspace) {
-                const defaultData = { ...WIDGET_REGISTRY[type].defaultData };
-                activeWorkspace.widgets.push({
-                    id: crypto.randomUUID(),
-                    type,
-                    isVisible: true,
-                    data: defaultData,
-                });
+            const workspace = state.workspaces.find((ws) => ws.id === workspaceId);
+            if (workspace) {
+                if (!workspace.data) workspace.data = {};
+                workspace.data[componentKey] = { ...workspace.data[componentKey], ...data };
             }
         }),
 
-    removeWidget: (widgetId) =>
+    // Widget data updater (backward compatibility)
+    // widgetId genellikle workspaceId veya bir component key olarak kullanılır
+    updateWidgetData: (widgetId, data) =>
         set((state) => {
-            const activeWorkspace = state.workspaces.find(
-                (ws) => ws.id === state.activeWorkspaceId
-            );
-            if (activeWorkspace) {
-                const index = activeWorkspace.widgets.findIndex((w) => w.id === widgetId);
-                if (index !== -1) {
-                    activeWorkspace.widgets.splice(index, 1);
+            // widgetId aslında workspaceId ise doğrudan o workspace'e yaz
+            let workspace = state.workspaces.find((ws) => ws.id === widgetId);
+
+            // Bulunamadıysa aktif workspace'i kullan
+            if (!workspace) {
+                workspace = state.workspaces.find((ws) => ws.id === state.activeWorkspaceId);
+            }
+
+            if (workspace) {
+                if (!workspace.data) workspace.data = {};
+
+                // Eğer data içinde 'metins' varsa, metinSettings altına kaydet
+                if (data.metins) {
+                    if (!workspace.data.metinSettings) workspace.data.metinSettings = {};
+                    workspace.data.metinSettings.metins = data.metins;
+                } else {
+                    // Diğer veriler için generic merge
+                    Object.keys(data).forEach(key => {
+                        workspace.data[key] = data[key];
+                    });
                 }
             }
         }),
 
-    toggleWidgetVisibility: (widgetId) =>
-        set((state) => {
-            const activeWorkspace = state.workspaces.find(
-                (ws) => ws.id === state.activeWorkspaceId
-            );
-            const widget = activeWorkspace?.widgets.find((w) => w.id === widgetId);
-            if (widget) {
-                widget.isVisible = !widget.isVisible;
-            }
-        }),
-
-    updateWidgetData: (widgetId, partialData) =>
-        set((state) => {
-            const activeWorkspace = state.workspaces.find(
-                (ws) => ws.id === state.activeWorkspaceId
-            );
-            const widget = activeWorkspace?.widgets.find((w) => w.id === widgetId);
-            if (widget) {
-                widget.data = { ...widget.data, ...partialData };
-            }
-        }),
-
-    togglePerformanceMode: () =>
-        set((state) => {
-            state.isPerformanceMode = !state.isPerformanceMode;
-        }),
-
-    /**
-     * Set the active market profile for a workspace
-     * @param {string} workspaceId - Workspace ID
-     * @param {string} profileId - Market profile ID
-     */
     setWorkspaceMarketProfile: (workspaceId, profileId) =>
         set((state) => {
             const workspace = state.workspaces.find((ws) => ws.id === workspaceId);

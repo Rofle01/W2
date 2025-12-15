@@ -47,7 +47,7 @@ const useWidgetStore = create(
 );
 
 // ============================================================================
-// HELPER HOOKS (Geriye Dönük Uyumluluk - Componentler Kırılmasın Diye)
+// HELPER HOOKS
 // ============================================================================
 
 /**
@@ -65,44 +65,6 @@ export const useActiveWorkspace = () => {
     const activeId = state.activeWorkspaceId;
     return state.workspaces.find((ws) => ws.id === activeId);
   });
-};
-
-/**
- * Aktif workspace'teki görünür widget'ları döndürür
- */
-export const useVisibleWidgets = () => {
-  return useWidgetStore((state) => {
-    const activeWorkspace = state.workspaces.find(
-      (ws) => ws.id === state.activeWorkspaceId
-    );
-    return activeWorkspace?.widgets.filter((w) => w.isVisible) || [];
-  });
-};
-
-/**
- * Aktif workspace'teki gizli widget'ları döndürür
- */
-export const useHiddenWidgets = () => {
-  return useWidgetStore((state) => {
-    const activeWorkspace = state.workspaces.find(
-      (ws) => ws.id === state.activeWorkspaceId
-    );
-    return activeWorkspace?.widgets.filter((w) => !w.isVisible) || [];
-  });
-};
-
-/**
- * Tüm workspace'leri döndürür
- */
-export const useWorkspaces = () => {
-  return useWidgetStore((state) => state.workspaces);
-};
-
-/**
- * Aktif workspace ID'sini döndürür
- */
-export const useActiveWorkspaceId = () => {
-  return useWidgetStore((state) => state.activeWorkspaceId);
 };
 
 // ============================================================================

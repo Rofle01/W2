@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, EyeOff, Settings, CheckCircle } from "lucide-react";
+import { Settings, CheckCircle } from "lucide-react";
 import useWidgetStore from "../../store/useWidgetStore";
 import { MASTER_REGISTRY } from "../../data/initialData";
 import { exportMetinsToExcel, parseMetinImport } from "../../lib/excelUtils";
@@ -156,88 +156,46 @@ function MetinSettingsDetailView({ widgetId, metins, marketItems, craftingItems 
 }
 
 // ============================================================================
-// MAIN WIDGET (Container)
+// MAIN WIDGET (Full-Page Dashboard View)
 // ============================================================================
-export default function MetinSettingsWidget({ id, data, isSelected, onClick, onHide }) {
+export default function MetinSettingsWidget() {
     // Get data from store
     const marketItems = useWidgetStore((state) => state.masterRegistry) || [];
     const craftingItems = useWidgetStore((state) => state.craftingItems) || [];
 
-    // Use widget data or initialize with default metins
-    const metins = data?.metins?.length > 0 ? data.metins : MASTER_REGISTRY.metinTemplates;
+    // Get metins from store or use defaults
+    const storedMetins = useWidgetStore((state) => {
+        const workspace = state.workspaces.find(ws => ws.id === state.activeWorkspaceId);
+        return workspace?.data?.metinSettings?.metins;
+    });
+    const metins = storedMetins?.length > 0 ? storedMetins : MASTER_REGISTRY.metinTemplates;
+
+    // We use activeWorkspaceId as the widgetId for data updates
+    const activeWorkspaceId = useWidgetStore((state) => state.activeWorkspaceId);
 
     return (
-        <motion.div
-            layoutId={`card-${id}`}
-            layout
-            onClick={!isSelected ? onClick : undefined}
-            className={`group rounded-3xl shadow-2xl cursor-pointer overflow-hidden backdrop-blur-xl border border-white/10 ${isSelected
-                ? "fixed inset-0 m-auto w-[90%] h-[90%] max-w-6xl z-[100] bg-black/80"
-                : "relative h-64 hover:-translate-y-1 hover:border-cyan-400/50 transition-all duration-300 bg-black/20 hover:bg-black/40"
-                }`}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        >
-            {/* Summary View */}
-            {!isSelected && (
-                <>
-                    {/* Hide Button */}
-                    <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onHide && onHide();
-                        }}
-                        className="absolute top-4 right-4 z-20 p-2 bg-white/10 backdrop-blur-sm shadow-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-cyan-400 hover:bg-cyan-500/20 border border-white/20"
-                    >
-                        <EyeOff className="w-4 h-4" />
-                    </motion.button>
-
-                    <div className="w-full h-full p-6 relative">
-                        <Settings className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 opacity-50 rotate-12 pointer-events-none" />
-                        <MetinSummary metins={metins} />
-                    </div>
-                </>
-            )}
-
-            {/* Detail View */}
-            {isSelected && (
-                <div className="flex flex-col h-full bg-black/20">
-                    {/* Header */}
-                    <div className="flex items-center justify-between p-8 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-cyan-500/10 backdrop-blur-sm rounded-2xl border border-cyan-500/20">
-                                <Settings className="w-8 h-8 text-cyan-400" />
-                            </div>
-                            <div>
-                                <motion.h2 layoutId={`title-${id}`} className="text-2xl font-bold text-white">
-                                    Metin Ayarları
-                                </motion.h2>
-                                <p className="text-white/60">HP ve drop ayarlarını düzenleyin</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onClick();
-                            }}
-                            className="p-2 hover:bg-white/10 rounded-full transition-colors backdrop-blur-sm border border-white/10 hover:border-white/20"
-                        >
-                            <X className="w-6 h-6 text-white/80" />
-                        </button>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 p-8 overflow-y-auto">
-                        <MetinSettingsDetailView
-                            widgetId={id}
-                            metins={metins}
-                            marketItems={marketItems}
-                            craftingItems={craftingItems}
-                        />
-                    </div>
+        <div className="h-full flex flex-col">
+            {/* Page Header */}
+            <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20">
+                    <Settings className="w-8 h-8 text-cyan-400" />
                 </div>
-            )}
-        </motion.div>
+                <div>
+                    <h1 className="text-2xl font-bold text-white">Metin Ayarları</h1>
+                    <p className="text-zinc-400">HP ve drop ayarlarını düzenleyin</p>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-hidden">
+                <MetinSettingsDetailView
+                    widgetId={activeWorkspaceId}
+                    metins={metins}
+                    marketItems={marketItems}
+                    craftingItems={craftingItems}
+                />
+            </div>
+        </div>
     );
 }
+

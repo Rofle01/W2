@@ -3,6 +3,12 @@ import useWidgetStore from "../store/useWidgetStore";
 import { MASTER_REGISTRY } from "../data/initialData";
 import { mergeMarketData } from "../lib/marketUtils";
 
+/**
+ * Merkezi veri paylaşım hook'u
+ * Tüm widget'lara ortak veri sağlar
+ * 
+ * YENİ MİMARİ: Veriler workspace.data objesinden okunur
+ */
 export function useSharedWidgetData() {
     // 1. Global Store Verileri
     const activeWorkspaceId = useWidgetStore((state) => state.activeWorkspaceId);
@@ -18,23 +24,47 @@ export function useSharedWidgetData() {
     const prices = activeProfile?.prices || {};
     const multipliers = activeProfile?.multipliers || { drop: 1.0 };
 
-    // 3. Diğer Store Verileri (Kardeş Widgetlar)
+    // 3. Aktif Workspace'i Bul
     const activeWorkspace = workspaces.find((ws) => ws.id === activeWorkspaceId);
-    const widgets = activeWorkspace?.widgets || [];
+    const workspaceData = activeWorkspace?.data || {};
 
-    const characterWidget = widgets.find((w) => w.type === "character-stats");
-    const metinWidget = widgets.find((w) => w.type === "metin-settings");
-    const bossWidget = widgets.find((w) => w.type === "boss-settings");
+    // 4. Karakter Verilerini Al (Yeni workspace.data yapısından)
+    // Birden fazla olası key'i kontrol et (eski ve yeni)
+    const characterData =
+        workspaceData.characterStats ||      // Yeni key (DashboardContent'ten)
+        workspaceData['character-settings'] || // Alternatif key
+        workspaceData['character-stats'] ||    // Alternatif key
+        null;
 
-    const userStats = characterWidget?.data || { damage: 3000, hitsPerSecond: 2.5, findTime: 10 };
-    const metinList = metinWidget?.data?.metins || MASTER_REGISTRY.metinTemplates;
+    const userStats = characterData || {
+        damage: 3000,
+        hitsPerSecond: 2.5,
+        findTime: 10
+    };
 
+    // 5. Metin Listesini Al (Yeni workspace.data yapısından)
+    // İmport işlemi metinSettings.metins'e kaydediyor
+    const metinData = workspaceData.metinSettings?.metins;
+    const metinList = (metinData && metinData.length > 0)
+        ? metinData
+        : MASTER_REGISTRY.metinTemplates;
 
-    // 4. Market Birleştirme
+    // 6. Market Birleştirme
     const marketItems = useMemo(() => {
         return mergeMarketData(itemRegistry, prices);
     }, [itemRegistry, prices]);
 
-    // 5. Hepsini Paketle
-    return { userStats, metinList, marketItems, craftingItems, prices, multipliers, bosses };
+    // 7. Hepsini Paketle
+    return {
+        userStats,
+        metinList,
+        marketItems,
+        craftingItems,
+        prices,
+        multipliers,
+        bosses,
+        // Debug için workspace data'ya erişim
+        workspaceData
+    };
 }
+
